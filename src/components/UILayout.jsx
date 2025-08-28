@@ -6,6 +6,7 @@ import InputAndShow from "./InputAndShow";
 export default function UILayout({ dataAnime, successData }) {
   const nameLength = dataAnime?.title ? dataAnime.title.length : 0;
   const titleAnime = dataAnime?.title || "";
+  const urlAnime = dataAnime?.url || "";
 
   return (
     <>
@@ -14,19 +15,26 @@ export default function UILayout({ dataAnime, successData }) {
           Wordlime
         </header>
         {successData ? (
-          <h1 className="mb-2">Anime data available</h1>
+          <h1 className="mb-2">
+            Đã có bộ Anime mà có mơ bạn cũng không đoán được:)
+          </h1>
         ) : (
-          <h1 className="mb-2">Anime data not found</h1>
+          <h1 className="mb-2">Chưa tìm đc bộ Anime nào đủ khó với bạn ;-;</h1>
         )}
         {dataAnime?.title && (
           <p className="mb-4 text-lg text-gray-700">
-            Title length (including spaces): {dataAnime.title.length}
+            Tên bộ này gồm(đã bao gồm cả các dấu không ngờ đến):{" "}
+            {dataAnime.title.length}
           </p>
         )}
         {successData ? (
-          <InputAndShow nameLength={nameLength} titleAnime={titleAnime} />
+          <InputAndShow
+            nameLength={nameLength}
+            titleAnime={titleAnime}
+            urlAnime={urlAnime}
+          />
         ) : (
-          <h1>No anime data available</h1>
+          <h1>Đợi xíu cho web hoạt động đi</h1>
         )}
       </div>
     </>

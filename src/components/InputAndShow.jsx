@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
-export default function InputAndShow({ nameLength, titleAnime }) {
+export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
   const MAX_ROWS = 6;
   const answer = (titleAnime || "").toUpperCase();
 
@@ -71,12 +72,31 @@ export default function InputAndShow({ nameLength, titleAnime }) {
     }
   };
 
-  // Nhập từ bàn phím thật
+  // Nhận phím cứng từ bàn phím
   useEffect(() => {
     const handleKeyDown = (event) => {
       const key = event.key;
-
-      if (/^[a-zA-Z]$/.test(key)) {
+      const allowedSymbols = [
+        " ",
+        ",",
+        ".",
+        "-",
+        ":",
+        ";",
+        "'",
+        "!",
+        "@",
+        "#",
+        "$",
+        "%",
+        "^",
+        "&",
+        "*",
+        "(",
+        ")",
+        "?",
+      ];
+      if (/^[a-zA-Z0-9]$/.test(key) || allowedSymbols.includes(key)) {
         handleKeyPress(key);
       } else if (key === "Backspace") {
         handleBackspace();
@@ -89,10 +109,19 @@ export default function InputAndShow({ nameLength, titleAnime }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [letters, currentRow, isSolved, gameOver, nameLength]);
 
-  // tô màu ô: chỉ tô cho các hàng đã submit
+  // tô màu + highlight ô đang nhập
   const getCellColor = (rowIdx, colIdx) => {
     const index = rowIdx * nameLength + colIdx;
     const char = letters[index]?.toUpperCase();
+
+    // nếu chưa nhập ký tự và là ô hiện tại
+    if (
+      rowIdx === currentRow &&
+      !submittedRows.includes(rowIdx) &&
+      letters.length === index
+    ) {
+      return "border-2 border-blue-500 animate-pulse";
+    }
 
     if (!char) return "bg-white border-gray-300";
     if (!submittedRows.includes(rowIdx)) return "bg-white border-gray-300";
@@ -140,18 +169,51 @@ export default function InputAndShow({ nameLength, titleAnime }) {
       {isSolved && (
         <div className="mb-4 px-4 py-2 rounded-lg bg-green-100 text-green-800 font-semibold">
           🎉 Chuẩn rồi! Bạn đoán đúng:{" "}
-          <span className="underline">{titleAnime}</span>
+          <Link
+            href={urlAnime}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            {titleAnime}
+          </Link>
         </div>
       )}
       {gameOver && !isSolved && (
         <div className="mb-4 px-4 py-2 rounded-lg bg-red-100 text-red-800 font-semibold">
           😵 Hết lượt! Đáp án là:{" "}
-          <span className="underline">{titleAnime}</span>
+          <Link
+            href={urlAnime}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            {titleAnime}
+          </Link>
         </div>
       )}
 
       {/* Bàn phím ảo */}
       <div className="flex flex-col gap-2 mb-8">
+        {/* Hàng số */}
+        <div className="flex justify-center gap-2">
+          {"1234567890".split("").map((key) => (
+            <button
+              key={key}
+              onClick={() => handleKeyPress(key)}
+              disabled={inputLocked}
+              className={`px-4 py-3 rounded-lg text-base font-bold uppercase cursor-pointer border-none ${
+                inputLocked
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-gray-300"
+              }`}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
+
+        {/* Hàng chữ */}
         {["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"].map((row, idx) => (
           <div key={idx} className="flex justify-center gap-2">
             {row.split("").map((key) => (

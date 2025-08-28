@@ -1,6 +1,7 @@
 "use client";
 
 import GetAnimeById from "@/api/GetAnimeById";
+import Note from "@/components/Note";
 import UILayout from "@/components/UILayout";
 import { useEffect, useState } from "react";
 
@@ -9,6 +10,7 @@ export default function Home() {
   const [dataAnime, setDataAnime] = useState([]);
   const [checkDataAnime, setCheckDataAnime] = useState(false);
   const [successData, setSuccessData] = useState(false);
+  const [note, setNote] = useState(false);
 
   useEffect(() => {
     const id = Math.floor(Math.random() * 50000) + 1;
@@ -68,6 +70,15 @@ export default function Home() {
   return (
     <>
       <UILayout dataAnime={dataAnime} successData={successData} />
+      <button
+        onClick={() => {
+          setNote(true);
+        }}
+        className=" h-10 w-10 border border-black rounded-full fixed top-4 right-4 bg-white hover:bg-gray-200 transition"
+      >
+        ?
+      </button>
+      {note && <Note onClose={() => setNote(false)} />}
     </>
   );
 }
