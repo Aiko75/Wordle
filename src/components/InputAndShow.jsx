@@ -105,8 +105,8 @@ export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
   }, [letters, currentRow, isSolved, gameOver, nameLength]);
 
   // tô màu + highlight ô đang nhập
