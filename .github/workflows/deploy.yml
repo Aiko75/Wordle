@@ -1,26 +1,35 @@
-name: Deploy Next.js static to GitHub Pages
+name: Deploy Next.js to GitHub Pages
 
 on:
   push:
-    branches:
-      - main # branch bạn code chính
+    branches: ["main"] # nhánh bạn đang làm việc
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # 👈 bắt buộc để push ra gh-pages
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - run: npm install
-      - run: npm run build
+      - name: Install dependencies
+        run: npm install
 
-      - name: Deploy to GitHub Pages
+      - name: Build
+        run: npm run build
+
+      - name: Export static
+        run: npm run export
+
+      - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
+          github_token: ${{ secrets.GITHUB_TOKEN }} # token mặc định
+          publish_dir: ./out # nơi chứa file export
