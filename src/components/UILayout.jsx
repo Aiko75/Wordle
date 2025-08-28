@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import InputAndShow from "./InputAndShow";
 
 export default function UILayout({ dataAnime, successData }) {
