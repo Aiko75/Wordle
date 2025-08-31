@@ -1,3 +1,5 @@
+"use client";
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -10,11 +12,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-export const metadata = {
-  title: "Wordlime",
-  description: "Worlde + Anime, what do u want more?",
-};
 
 export default function RootLayout({ children }) {
   return (

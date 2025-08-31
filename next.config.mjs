@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === "production";
+
 const nextConfig = {
   output: "export",
-  images: { unoptimized: true }, // tránh lỗi ảnh
-  basePath: "/Wordle", // trùng tên repo
-  assetPrefix: "/Wordle/",
+  images: { unoptimized: true },
+  basePath: isProd ? "/Wordle" : "",
+  assetPrefix: isProd ? "/Wordle/" : "",
+  reactStrictMode: false,
 };
+
 export default nextConfig;

@@ -3,25 +3,45 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
-  const MAX_ROWS = 6;
-  const answer = (titleAnime || "").toUpperCase();
+export default function InputAndShow({
+  nameLength,
+  titleAnime,
+  urlAnime,
+  character,
+  characterNameLength,
+}) {
+  console.log("InputAndShow props:", {
+    nameLength,
+    titleAnime,
+    urlAnime,
+    character,
+    characterNameLength,
+  });
 
-  const [letters, setLetters] = useState([]); // tất cả ký tự người chơi nhập
-  const [currentRow, setCurrentRow] = useState(0); // hàng đang nhập
-  const [submittedRows, setSubmittedRows] = useState([]); // danh sách hàng đã submit
+  const MAX_ROWS = 6;
+
+  // Chọn chế độ active (Anime hoặc Character)
+  const isCharacterMode = !!character;
+  const activeLength = isCharacterMode ? characterNameLength : nameLength;
+  const activeTitle = isCharacterMode ? character : titleAnime;
+  const activeUrl = isCharacterMode ? "#" : urlAnime; // nếu cần link nhân vật thì sau này gắn API
+  const answer = (activeTitle || "")?.toUpperCase();
+
+  const [letters, setLetters] = useState([]);
+  const [currentRow, setCurrentRow] = useState(0);
+  const [submittedRows, setSubmittedRows] = useState([]);
   const [isSolved, setIsSolved] = useState(false);
-  const [gameOver, setGameOver] = useState(false); // hết 6 lượt mà chưa đúng
+  const [gameOver, setGameOver] = useState(false);
 
   const handleKeyPress = (char) => {
     if (isSolved || gameOver || currentRow >= MAX_ROWS) return;
 
     setLetters((prev) => {
-      const rowStart = currentRow * nameLength;
-      const rowEnd = (currentRow + 1) * nameLength;
+      const rowStart = currentRow * activeLength;
+      const rowEnd = (currentRow + 1) * activeLength;
       const rowLetters = prev.slice(rowStart, rowEnd);
 
-      if (rowLetters.length < nameLength) {
+      if (rowLetters.length < activeLength) {
         return [...prev, char.toUpperCase()];
       }
       return prev;
@@ -32,9 +52,8 @@ export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
     if (isSolved || gameOver || currentRow >= MAX_ROWS) return;
 
     setLetters((prev) => {
-      const rowStart = currentRow * nameLength;
-      const rowEnd = (currentRow + 1) * nameLength;
-      // chỉ xóa khi đang ở trong row hiện tại
+      const rowStart = currentRow * activeLength;
+      const rowEnd = (currentRow + 1) * activeLength;
       if (prev.length > rowStart && prev.length <= rowEnd) {
         return prev.slice(0, -1);
       }
@@ -45,15 +64,12 @@ export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
   const handleEnter = () => {
     if (isSolved || gameOver || currentRow >= MAX_ROWS) return;
 
-    const rowStart = currentRow * nameLength;
-    const rowEnd = (currentRow + 1) * nameLength;
+    const rowStart = currentRow * activeLength;
+    const rowEnd = (currentRow + 1) * activeLength;
     const rowLetters = letters.slice(rowStart, rowEnd);
 
-    // chỉ submit khi đủ ký tự
-    if (rowLetters.length === nameLength) {
-      // khóa hàng hiện tại
+    if (rowLetters.length === activeLength) {
       setSubmittedRows((prev) => [...prev, currentRow]);
-
       const guess = rowLetters.join("").toUpperCase();
 
       if (guess === answer) {
@@ -61,18 +77,15 @@ export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
         return;
       }
 
-      // nếu đây là hàng thứ 6 (index 5) và vẫn sai -> game over + reveal
       if (currentRow === MAX_ROWS - 1) {
         setGameOver(true);
         return;
       }
 
-      // sang hàng tiếp theo
       setCurrentRow((prev) => prev + 1);
     }
   };
 
-  // Nhận phím cứng từ bàn phím
   useEffect(() => {
     const handleKeyDown = (event) => {
       const key = event.key;
@@ -107,14 +120,12 @@ export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
 
     globalThis.addEventListener("keydown", handleKeyDown);
     return () => globalThis.removeEventListener("keydown", handleKeyDown);
-  }, [letters, currentRow, isSolved, gameOver, nameLength]);
+  }, [letters, currentRow, isSolved, gameOver, activeLength]);
 
-  // tô màu + highlight ô đang nhập
   const getCellColor = (rowIdx, colIdx) => {
-    const index = rowIdx * nameLength + colIdx;
+    const index = rowIdx * activeLength + colIdx;
     const char = letters[index]?.toUpperCase();
 
-    // nếu chưa nhập ký tự và là ô hiện tại
     if (
       rowIdx === currentRow &&
       !submittedRows.includes(rowIdx) &&
@@ -144,11 +155,11 @@ export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
             key={rowIdx}
             className="grid gap-2"
             style={{
-              gridTemplateColumns: `repeat(${nameLength}, minmax(0, 1fr))`,
+              gridTemplateColumns: `repeat(${activeLength}, minmax(0, 1fr))`,
             }}
           >
-            {[...Array(nameLength)].map((_, colIdx) => {
-              const index = rowIdx * nameLength + colIdx;
+            {[...Array(activeLength)].map((_, colIdx) => {
+              const index = rowIdx * activeLength + colIdx;
               return (
                 <div
                   key={colIdx}
@@ -170,12 +181,12 @@ export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
         <div className="mb-4 px-4 py-2 rounded-lg bg-green-100 text-green-800 font-semibold">
           🎉 Chuẩn rồi! Bạn đoán đúng:{" "}
           <Link
-            href={urlAnime}
+            href={activeUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="underline"
           >
-            {titleAnime}
+            {activeTitle}
           </Link>
         </div>
       )}
@@ -183,19 +194,18 @@ export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
         <div className="mb-4 px-4 py-2 rounded-lg bg-red-100 text-red-800 font-semibold">
           😵 Hết lượt! Đáp án là:{" "}
           <Link
-            href={urlAnime}
+            href={activeUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="underline"
           >
-            {titleAnime}
+            {activeTitle}
           </Link>
         </div>
       )}
 
       {/* Bàn phím ảo */}
       <div className="flex flex-col gap-2 mb-8">
-        {/* Hàng số */}
         <div className="flex justify-center gap-2">
           {"1234567890".split("").map((key) => (
             <button
@@ -213,7 +223,6 @@ export default function InputAndShow({ nameLength, titleAnime, urlAnime }) {
           ))}
         </div>
 
-        {/* Hàng chữ */}
         {["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"].map((row, idx) => (
           <div key={idx} className="flex justify-center gap-2">
             {row.split("").map((key) => (
