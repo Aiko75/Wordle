@@ -16,7 +16,6 @@ export default function Home() {
   const [switchMode, setSwitchMode] = useState(false);
   const [dataCharacterGenshin, setDataCharacterGenshin] = useState([]);
   const [character, setCharacter] = useState(null);
-  const [characterLength, setCharacterLength] = useState(0);
   const [characterNameLength, setCharacterNameLength] = useState(0);
 
   useEffect(() => {
@@ -94,7 +93,6 @@ export default function Home() {
             const id = Math.floor(Math.random() * length);
             const randomCharacter = res.data[id];
 
-            setCharacterLength(length);
             setCharacter(randomCharacter || "");
             setCharacterNameLength(
               randomCharacter ? randomCharacter.length : 0
