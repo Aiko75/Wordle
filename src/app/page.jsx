@@ -1,6 +1,7 @@
 "use client";
 
 import GetAnimeById from "@/api/GetAnimeById";
+import GetCharacterGenshin from "@/api/GetCharacterGenshin";
 import Note from "@/components/Note";
 import UILayout from "@/components/UILayout";
 import { useEffect, useState } from "react";
@@ -10,15 +11,21 @@ export default function Home() {
   const [dataAnime, setDataAnime] = useState([]);
   const [checkDataAnime, setCheckDataAnime] = useState(false);
   const [successData, setSuccessData] = useState(false);
+  const [successDataGenshin, setSuccessDataGenshin] = useState(false);
   const [note, setNote] = useState(false);
+  const [switchMode, setSwitchMode] = useState(false);
+  const [dataCharacterGenshin, setDataCharacterGenshin] = useState([]);
+  const [character, setCharacter] = useState(null);
+  const [characterNameLength, setCharacterNameLength] = useState(0);
 
   useEffect(() => {
     const id = Math.floor(Math.random() * 50000) + 1;
-    console.log("Generated random ID:", id);
     setRandomId(id);
   }, []);
 
   useEffect(() => {
+    if (!randomId) return;
+    if (switchMode) return;
     let isMounted = true;
     const fetchAnime = async (id) => {
       console.log("Fetching anime with ID:", id);
@@ -32,7 +39,6 @@ export default function Home() {
       } else if (res.status === 404) {
         // If 404, try another randomId
         const newId = Math.floor(Math.random() * 50000) + 1;
-        console.log("Generated new random ID:", newId);
         setRandomId(newId);
       }
     };
@@ -45,9 +51,14 @@ export default function Home() {
     return () => {
       isMounted = false;
     };
-  }, [randomId]);
+  }, [randomId, switchMode]);
 
   useEffect(() => {
+    console.log("Changed switch mode:", switchMode);
+  }, [switchMode]);
+
+  useEffect(() => {
+    if (switchMode) return;
     if (!checkDataAnime) return;
     if (!dataAnime) return;
 
@@ -65,11 +76,55 @@ export default function Home() {
     } else {
       setSuccessData(true);
     }
-  }, [checkDataAnime, dataAnime]);
+  }, [checkDataAnime, dataAnime, switchMode]);
+
+  useEffect(() => {
+    // Chỉ chạy khi đang ở chế độ Genshin và chưa có data
+    if (switchMode && !successDataGenshin) {
+      const fetchCharacterGenshin = async () => {
+        try {
+          const res = await GetCharacterGenshin();
+          if (res.success) {
+            setDataCharacterGenshin(res.data);
+            setSuccessDataGenshin(true);
+
+            // 👉 Sau khi fetch thành công thì random luôn 1 nhân vật
+            const length = res.data.length;
+            const id = Math.floor(Math.random() * length);
+            const randomCharacter = res.data[id];
+
+            setCharacter(randomCharacter || "");
+            setCharacterNameLength(
+              randomCharacter ? randomCharacter.length : 0
+            );
+          }
+        } catch (err) {
+          console.error("Fetch Genshin character failed:", err);
+        }
+      };
+
+      const timer = setTimeout(fetchCharacterGenshin, 400);
+      return () => clearTimeout(timer); // cleanup khi unmount hoặc switch mode
+    }
+  }, [
+    switchMode,
+    successDataGenshin,
+    setDataCharacterGenshin,
+    setSuccessDataGenshin,
+  ]);
 
   return (
     <>
-      <UILayout dataAnime={dataAnime} successData={successData} />
+      <UILayout
+        switchMode={switchMode}
+        setSwitchMode={setSwitchMode}
+        dataAnime={dataAnime}
+        dataCharacterGenshin={dataCharacterGenshin}
+        successData={successData}
+        successDataGenshin={successDataGenshin}
+        character={character}
+        characterNameLength={characterNameLength}
+      />
       <button
         onClick={() => {
           setNote(true);
